@@ -249,7 +249,7 @@ export class TopicsService {
             }
             resolve(jobStatus.result);
           });
-      }, 1000);
+      }, 5000);
     });
   }
 }
