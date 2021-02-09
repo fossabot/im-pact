@@ -34,14 +34,29 @@ export default class FilterTweetAuthorProfileLikeFollowerBayesian
     return [];
   }
 
-  async filter(tweet: Tweet): Promise<number> {
+  async filter(tweet: Tweet): Promise<number[]> {
     // ベイジアンフィルタを初期化
     await this.initBayes();
-    // ツイートした人のプロフィールからベイジアンフィルタでカテゴリを予測
+
+    // ツイートした人のプロフィールからベイジアンフィルタで各カテゴリの確率を予測
+    const numOfCategories = 2;
     const userProfile = JSON.parse(tweet.rawJSONData).user.description;
-    const category = await this.bayes.categorize(userProfile);
-    // カテゴリに応じた数値を返す
-    return category === 'accept' ? 1 : 0;
+    const results = await this.bayes.categorizeMultiple(userProfile, numOfCategories);
+
+    // accept カテゴリの確率を取得
+    const resultOfAccept = results.find((item: any) => {
+      return item.category === 'accept';
+    });
+    const probabilityOfAccept = resultOfAccept ? resultOfAccept.propability : 0.0;
+
+    // reject カテゴリの確率を取得
+    const resultOfReject = results.find((item: any) => {
+      return item.category === 'reject';
+    });
+    const probabilityOfReject = resultOfReject ? resultOfReject.propability : 0.0;
+
+    // 各カテゴリの確率を返す
+    return [probabilityOfAccept, probabilityOfReject];
   }
 
   async train(tweet: Tweet, isSelected: boolean) {
