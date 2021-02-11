@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import { Repository } from 'typeorm';
 import { TweetFilterHelper } from './module-helpers/tweet-filter.helper';
 import { ModuleStorage } from './module-storage';
