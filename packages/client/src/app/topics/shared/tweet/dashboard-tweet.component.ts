@@ -35,13 +35,6 @@ export class DashboardTweetComponent extends TweetComponent implements OnInit {
   ngOnInit(): void {
     this.isSelected = this.tweet.predictedClass === 'accept' ? true : false;
     this.rawData = JSON.parse(this.tweet.rawJSONData);
-    this.filtersResult = this.tweet.filtersResult.map(result => {
-      if (Number.isInteger(result) || !result.match(/\./)) {
-        return String(result);
-      } else {
-        return parseFloat(result).toFixed(1);
-      }
-    });
 
     // 当該ツイートがどのアクションまで実行されたかを取得
     const completeActionIndex = this.tweet.completeActionIndex;
@@ -53,7 +46,9 @@ export class DashboardTweetComponent extends TweetComponent implements OnInit {
     });
     if (this.isSelected) {
       // 承認済みツイートならば、現在所属しているアクションを除く
-      this.detinationActions = this.detinationActions.filter((action: any, index: number) => completeActionIndex + 1 !== index);
+      this.detinationActions = this.detinationActions.filter(
+        (action: any, index: number) => completeActionIndex + 1 !== index,
+      );
     }
   }
 
@@ -78,5 +73,13 @@ export class DashboardTweetComponent extends TweetComponent implements OnInit {
       tweetIdStr: this.tweet.idStr,
       selected: false,
     });
+  }
+
+  convertFilterResultValueToString(value: any) {
+    if (Number.isInteger(value)) {
+      return String(value);
+    } else {
+      return parseFloat(value).toFixed(2);
+    }
   }
 }

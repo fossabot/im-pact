@@ -154,7 +154,21 @@
       </ul>
     </div>
     <!-- フィルタの実行結果 (トレーニング＆検証用) -->
-    <div class="filters-result" *ngIf="tweet.filtersResult">Filter: {{ filtersResult?.join(' / ') }}</div>
+    <div class="filters-result" *ngIf="tweet.filtersResult">
+      Filter:
+      <!-- 各フィルタ -->
+      <div class="filter" *ngFor="let filterResult of tweet.filtersResult" style="display: inline;">
+        <!-- 各値 -->
+        <span
+          class="filter-value"
+          *ngFor="let item of filterResult.result.values | keyvalue"
+          matTooltip="{{ item.value.title }} (by {{ filterResult.filterName }})"
+          >{{ convertFilterResultValueToString(item.value.value) }}</span
+        >
+        <!---->
+      </div>
+      <!---->
+    </div>
     <!---->
   </mat-card-content>
   <!---->
