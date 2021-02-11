@@ -16,6 +16,7 @@ import { SocialAccount } from '../../../social-accounts/entities/social-account.
 import { Topic } from 'src/topics/entities/topic.entity';
 import { CrawledTweet } from './crawled-tweet.entity';
 import { Tweet } from './tweet.entity';
+import { TweetFilterResultWithMultiValues } from '../modules/tweet-filters/interfaces/tweet-filter.interface';
 
 /**
  * 抽出済みツイートのエンティティ
@@ -53,10 +54,13 @@ export class ExtractedTweet extends Tweet {
 
   // ツイートフィルタの結果
   @Column({
-    type: 'text',
-    array: true,
+    type: 'json',
+    default: '{}',
   })
-  filtersResult: string[];
+  filtersResult: {
+    filterName: string;
+    result: TweetFilterResultWithMultiValues;
+  }[];
 
   // 完了したアクションのインデックス番号
   @Column({

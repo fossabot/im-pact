@@ -6,7 +6,12 @@ import * as ModuleStorageEntity from '../entities/module-storage.entity';
 import { ModuleTweetStorage } from './module-tweet-storage';
 import { CrawledTweet } from '../entities/crawled-tweet.entity';
 import { SocialAccount } from 'src/social-accounts/entities/social-account.entity';
-import { TweetFilter } from './tweet-filters/interfaces/tweet-filter.interface';
+import {
+  TweetFilter,
+  TweetFilterResultWithMultiValues,
+  TweetFilterResult,
+  TweetFilterResultSummaryWithEvidenceImages,
+} from './tweet-filters/interfaces/tweet-filter.interface';
 import { TweetFilterBatch } from './tweet-filters/interfaces/tweet-filter-batch.interface';
 import { TweetFilterTrain } from './tweet-filters/interfaces/tweet-filter-train.interface';
 import { ManagerHelper } from './manager.helper';
@@ -101,9 +106,9 @@ export class TweetFilterManager {
    * @param tweet ツイート
    * @return ツイートフィルタの実行結果
    */
-  async filterTweet(tweet: any): Promise<number[]> {
+  async filterTweet(tweet: any): Promise<{ filterName: string; result: TweetFilterResultWithMultiValues }[]> {
     // 当該ツイートに対する全フィルタの適用結果を代入するための配列
-    let allFiltersResults = [];
+    let allFiltersResults: { filterName: string; result: TweetFilterResultWithMultiValues }[] = [];
 
     // フィルタ設定を反復
     for (const filter of this.filterSettings) {
@@ -113,9 +118,27 @@ export class TweetFilterManager {
         console.log(`[TweetFilters] - filterTweetByFilterSettings - This filter was invalid... ${filter.name}`);
         continue;
       }
+
       // 当該ツイートフィルタでフィルタを実行
-      const filterResult = await mod.filter(tweet);
-      allFiltersResults.push(filterResult);
+      let filterResult = await mod.filter(tweet);
+      if ((filterResult as TweetFilterResult).value) {
+        // 値が単一ならば、形式を変換
+        const filterResult_: TweetFilterResultWithMultiValues = {
+          summary: filterResult.summary,
+          values: {},
+        };
+        filterResult_.values[filter.name] = {
+          title: (filterResult as TweetFilterResult).value.title,
+          value: (filterResult as TweetFilterResult).value.value,
+        };
+        filterResult = filterResult_;
+      }
+
+      // 当該ツイートフィルタの実行結果を配列へ代入
+      allFiltersResults.push({
+        filterName: filter.name,
+        result: filterResult as TweetFilterResultWithMultiValues,
+      });
     }
 
     if (allFiltersResults.length === 0) {

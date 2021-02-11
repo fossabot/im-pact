@@ -5,6 +5,7 @@ import {
   TweetFilterSettingsDefinition,
   TweetFilterBatch,
   TweetFilterTrain,
+  TweetFilterResultWithMultiValues,
 } from '@arisucool/im-pact-core';
 import * as TinySegmenter from 'tiny-segmenter';
 import * as Bayes from 'bayes-multiple-categories';
@@ -34,7 +35,7 @@ export default class FilterTweetAuthorProfileLikeFollowerBayesian
     return [];
   }
 
-  async filter(tweet: Tweet): Promise<number[]> {
+  async filter(tweet: Tweet): Promise<TweetFilterResultWithMultiValues> {
     // ベイジアンフィルタを初期化
     await this.initBayes();
 
@@ -55,8 +56,27 @@ export default class FilterTweetAuthorProfileLikeFollowerBayesian
     });
     const probabilityOfReject = resultOfReject ? resultOfReject.propability : 0.0;
 
-    // 各カテゴリの確率を返す
-    return [probabilityOfAccept, probabilityOfReject];
+    // フィルタ結果のサマリを生成
+    const summaryText =
+      probabilityOfReject < probabilityOfAccept ? 'このプロフィールは承認である' : 'このプロフィールは拒否である';
+
+    // フィルタ結果を返す
+    return {
+      summary: {
+        summaryText: summaryText,
+        evidenceText: userProfile,
+      },
+      values: {
+        probabilityOfAccept: {
+          title: 'プロフィールが承認である確率',
+          value: probabilityOfAccept,
+        },
+        probabilityOfReject: {
+          title: 'プロフィールが拒否である確率',
+          value: probabilityOfReject,
+        },
+      },
+    };
   }
 
   async train(tweet: Tweet, isSelected: boolean) {
